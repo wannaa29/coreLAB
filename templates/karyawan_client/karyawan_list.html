@@ -12,6 +12,13 @@
     </style>
 </head>
 <body>
+  {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
     <h1>Daftar Karyawan</h1>
     <a href="{% url 'add_karyawan' %}">Tambah Karyawan Baru</a>
     <hr>

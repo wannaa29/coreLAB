@@ -1,8 +1,8 @@
 from django import forms
 
 CHOICES_JK = (
-    ("L", "Laki-laki"),
-    ("P", "Perempuan"),
+    ("Laki-laki", "Laki-laki"),
+    ("Perempuan", "Perempuan"),
 )
 
 CHOICES_STATUS = (

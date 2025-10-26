@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daftar Karyawan</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        a { text-decoration: none; color: #007bff; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Daftar Karyawan</h1>
+    <a href="{% url 'add_karyawan' %}">Tambah Karyawan Baru</a>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Posisi</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for karyawan in karyawans %}
+            <tr>
+                <td>{{ karyawan.id }}</td>
+                <td>{{ karyawan.nama }}</td>
+                <td>{{ karyawan.email }}</td>
+                <td>{{ karyawan.posisi }}</td>
+                <td>{{ karyawan.status }}</td>
+                <td>
+                    <a href="{% url 'edit_karyawan' karyawan.id %}">Edit</a> |
+                    <a href="{% url 'delete_karyawan' karyawan.id %}" onclick="return confirm('Apakah Anda yakin?');">Hapus</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">Tidak ada data karyawan.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,7 +1,0 @@
-<h1>Hapus Karyawan</h1>
-<p>Apakah kamu yakin ingin menghapus data karyawan <strong>{{ karyawan.nama }}</strong>?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" style="background-color: red; color: white;">Ya, Hapus</button>
-</form>
-<a href="{% url 'daftar_karyawan' %}">Batal</a>

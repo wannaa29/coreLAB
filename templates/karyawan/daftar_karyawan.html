@@ -1,0 +1,29 @@
+<h1>Daftar Karyawan coreLAB</h1>
+<a href="{% url 'tambah_karyawan' %}">+ Tambah Karyawan Baru</a>
+<table border="1" style="width:100%; margin-top: 20px;">
+    <thead>
+        <tr>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>Posisi</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for karyawan in karyawan_list %}
+        <tr>
+            <td>{{ karyawan.nama }}</td>
+            <td>{{ karyawan.email }}</td>
+            <td>{{ karyawan.posisi }}</td>
+            <td>
+                <a href="{% url 'edit_karyawan' karyawan.pk %}">Edit</a> |
+                <a href="{% url 'hapus_karyawan' karyawan.pk %}">Hapus</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Belum ada data karyawan.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

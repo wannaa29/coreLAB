@@ -1,8 +1,9 @@
 import requests
+import pandas as pd
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.contrib import messages  # Tambahkan ini
-from .forms import KaryawanForm
+from django.contrib import messages
+from .forms import KaryawanForm, ImportForm
 
 API_URL = settings.API_BASE_URL
 
@@ -94,3 +95,81 @@ def delete_karyawan(request, karyawan_id):
         messages.error(request, "Gagal menghapus karyawan.")
     return redirect("list_karyawans")
 
+
+def import_karyawan(request):
+    if request.method == "POST":
+        form = ImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data["file"]
+
+            # Baca file berdasarkan ekstensinya
+            try:
+                if file.name.endswith(".csv"):
+                    df = pd.read_csv(file)
+                elif file.name.endswith((".xls", ".xlsx")):
+                    df = pd.read_excel(file)
+                else:
+                    messages.error(
+                        request,
+                        "Format file tidak didukung. Harap unggah file CSV atau Excel.",
+                    )
+                    return redirect("import_karyawan")
+            except Exception as e:
+                messages.error(request, f"Gagal membaca file: {e}")
+                return redirect("import_karyawan")
+
+            success_count = 0
+            fail_count = 0
+            failed_rows = []
+
+            # Iterasi setiap baris di DataFrame
+            for index, row in df.iterrows():
+                # Siapkan data untuk dikirim ke API
+                # Ganti NaN (kosong) dengan None
+                data = row.where(pd.notnull(row), None).to_dict()
+
+                # Konversi tipe data jika perlu (khususnya tanggal)
+                if pd.notna(data.get("tanggal_lahir")):
+                    data["tanggal_lahir"] = (
+                        pd.to_datetime(data["tanggal_lahir"]).date().isoformat()
+                    )
+                if pd.notna(data.get("tanggal_bergabung")):
+                    data["tanggal_bergabung"] = (
+                        pd.to_datetime(data["tanggal_bergabung"]).date().isoformat()
+                    )
+
+                # Kirim data ke API
+                try:
+                    response = requests.post(f"{API_URL}/karyawans/", json=data)
+                    if response.status_code == 201:
+                        success_count += 1
+                    else:
+                        fail_count += 1
+                        # Ambil pesan error dari API jika ada
+                        error_detail = response.json().get("detail", "Unknown error")
+                        failed_rows.append(
+                            {"row": index + 2, "data": data, "error": error_detail}
+                        )
+                except requests.exceptions.RequestException as e:
+                    fail_count += 1
+                    failed_rows.append(
+                        {"row": index + 2, "data": data, "error": str(e)}
+                    )
+
+            # Tampilkan pesan hasil
+            if success_count > 0:
+                messages.success(
+                    request, f"Berhasil mengimport {success_count} karyawan."
+                )
+            if fail_count > 0:
+                messages.warning(
+                    request,
+                    f"Gagal mengimport {fail_count} karyawan. Lihat baris yang gagal di console developer browser untuk detailnya.",
+                )
+                # Opsional: Anda bisa menyimpan `failed_rows` di session untuk ditampilkan
+
+            return redirect("list_karyawans")
+    else:
+        form = ImportForm()
+
+    return render(request, "karyawan_client/import_form.html", {"form": form})

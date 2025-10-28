@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.conf import settings
 from django.contrib import messages
 from .forms import KaryawanForm, ImportForm
@@ -12,14 +13,16 @@ def list_karyawans(request):
     try:
         response = requests.get(f"{API_URL}/karyawans/")
         response.raise_for_status()  # Akan raise error untuk status 4xx/5xx
-        karyawans = response.json()
+        karyawans_list = response.json()
     except requests.exceptions.RequestException as e:
         karyawans = []
         messages.error(request, f"Gagal mengambil data dari API: {e}")
 
-    return render(
-        request, "karyawan_client/karyawan_list.html", {"karyawans": karyawans}
-    )
+    paginator = Paginator(karyawans_list, 2)  # 10 item per halaman
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "karyawan_client/karyawan_list.html", {"page_obj": page_obj})
 
 
 def add_karyawan(request):

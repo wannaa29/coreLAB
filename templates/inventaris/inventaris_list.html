@@ -9,6 +9,17 @@
         th { background-color: #f2f2f2; }
         a { text-decoration: none; color: #007bff; }
         a:hover { text-decoration: underline; }
+        .pagination { display: flex; justify-content: center; list-style: none; padding: 0; }
+        .pagination li { margin: 0 5px; }
+        .pagination a, .pagination span {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .pagination a:hover { background-color: #eee; }
+        .pagination .active span { background-color: #007bff; color: white; border-color: #007bff; }
+        .pagination .disabled span { color: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -38,7 +49,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in inventariss %}
+            {% for item in  page_obj%}
             <tr>
                 <td>{{ item.id }}</td>
                 <td>{{ item.nama_alat }}</td>
@@ -65,5 +76,28 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <li><a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a></li>
+        {% else %}
+            <li class="disabled"><span>&laquo; Previous</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="active"><span>{{ num }}</span></li>
+            {% else %}
+                <li><a href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li><a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a></li>
+        {% else %}
+            <li class="disabled"><span>Next &raquo;</span></li>
+        {% endif %}
+    </div>
+    {% endif %}
 </body>
 </html>

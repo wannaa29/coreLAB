@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.conf import settings
 from django.contrib import messages
 from .forms import InventarisForm, ImportForm
@@ -12,14 +13,16 @@ def list_inventaris(request):
     try:
         response = requests.get(f"{API_URL}/inventaris/")
         response.raise_for_status()
-        inventariss = response.json()
+        inventariss_list = response.json()
     except requests.exceptions.RequestException as e:
         inventariss = []
         messages.error(request, f"Gagal mengambil data inventaris dari API: {e}")
 
-    return render(
-        request, "inventaris/inventaris_list.html", {"inventariss": inventariss}
-    )
+    paginator = Paginator(inventariss_list, 3)  # 10 item per halaman
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "inventaris/inventaris_list.html", {"page_obj": page_obj})
 
 
 def add_inventaris(request):

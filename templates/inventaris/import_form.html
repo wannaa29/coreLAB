@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Import Data Inventaris</title>
+</head>
+<body>
+    <h1>Import Data Inventaris dari File</h1>
+    
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p><strong>Petunjuk:</strong> Siapkan file CSV atau Excel dengan kolom berikut (huruf kecil semua):</p>
+    <ul>
+        <li><code>nama_alat</code> (wajib)</li>
+        <li><code>kategori</code> (wajib)</li>
+        <li><code>merk</code> (opsional)</li>
+        <li><code>model</code> (opsional)</li>
+        <li><code>nomor_seri</code> (opsional, tapi harus unik)</li>
+        <li><code>karyawan_id</code> (opsional, isi dengan ID angka)</li>
+        <li><code>tanggal_pembelian</code> (opsional, format YYYY-MM-DD)</li>
+        <li><code>kondisi</code> (opsional, pilihan: 'baik', 'rusak ringan', 'rusak berat', 'dalam perbaikan')</li>
+        <li><code>status</code> (opsional, pilihan: 'tersedia', 'digunakan', 'dihapuskan')</li>
+    </ul>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Import Data</button>
+    </form>
+    <br>
+    <a href="{% url 'list_inventaris' %}">Kembali ke Daftar</a>
+</body>
+</html>

@@ -8,4 +8,5 @@ urlpatterns = [
     path(
         "delete/<int:inventaris_id>/", views.delete_inventaris, name="delete_inventaris"
     ),
+    path("import/", views.import_inventaris, name="import_inventaris"),
 ]

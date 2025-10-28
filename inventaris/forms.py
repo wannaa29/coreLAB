@@ -35,3 +35,10 @@ class InventarisForm(forms.Form):
         choices=KONDISI_CHOICES, required=False, label="Kondisi"
     )
     status = forms.ChoiceField(choices=STATUS_CHOICES, required=False, label="Status")
+
+
+class ImportForm(forms.Form):
+    file = forms.FileField(
+        label="Pilih File CSV atau Excel",
+        help_text="Pastikan file memiliki kolom: nama_alat, kategori, merk, model, nomor_seri, karyawan_id, tanggal_pembelian, kondisi, status.",
+    )

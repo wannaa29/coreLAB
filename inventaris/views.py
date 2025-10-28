@@ -1,8 +1,9 @@
 import requests
+import pandas as pd
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
-from .forms import InventarisForm
+from .forms import InventarisForm, ImportForm
 
 API_URL = settings.API_BASE_URL
 
@@ -90,4 +91,74 @@ def delete_inventaris(request, inventaris_id):
     return redirect("list_inventaris")
 
 
-# Create your views here.
+def import_inventaris(request):
+    if request.method == "POST":
+        form = ImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data["file"]
+
+            try:
+                if file.name.endswith(".csv"):
+                    df = pd.read_csv(file)
+                elif file.name.endswith((".xls", ".xlsx")):
+                    df = pd.read_excel(file)
+                else:
+                    messages.error(
+                        request,
+                        "Format file tidak didukung. Harap unggah file CSV atau Excel.",
+                    )
+                    return redirect("import_inventaris")
+            except Exception as e:
+                messages.error(request, f"Gagal membaca file: {e}")
+                return redirect("import_inventaris")
+
+            success_count = 0
+            fail_count = 0
+            failed_rows = []
+
+            for index, row in df.iterrows():
+                # Siapkan data untuk dikirim ke API
+                # Ganti NaN (kosong) dengan None
+                data = row.where(pd.notnull(row), None).to_dict()
+
+                # Konversi tipe data jika perlu
+                if pd.notna(data.get("tanggal_pembelian")):
+                    data["tanggal_pembelian"] = (
+                        pd.to_datetime(data["tanggal_pembelian"]).date().isoformat()
+                    )
+
+                # Pastikan karyawan_id adalah integer jika tidak kosong
+                if pd.notna(data.get("karyawan_id")):
+                    data["karyawan_id"] = int(data["karyawan_id"])
+
+                try:
+                    response = requests.post(f"{API_URL}/inventaris/", json=data)
+                    if response.status_code == 201:
+                        success_count += 1
+                    else:
+                        fail_count += 1
+                        error_detail = response.json().get("detail", "Unknown error")
+                        failed_rows.append(
+                            {"row": index + 2, "data": data, "error": error_detail}
+                        )
+                except requests.exceptions.RequestException as e:
+                    fail_count += 1
+                    failed_rows.append(
+                        {"row": index + 2, "data": data, "error": str(e)}
+                    )
+
+            if success_count > 0:
+                messages.success(
+                    request, f"Berhasil mengimport {success_count} item inventaris."
+                )
+            if fail_count > 0:
+                messages.warning(
+                    request,
+                    f"Gagal mengimport {fail_count} item inventaris. Periksa data Anda (misalnya: nomor seri ganda, ID karyawan tidak valid).",
+                )
+
+            return redirect("list_inventaris")
+    else:
+        form = ImportForm()
+
+    return render(request, "inventaris/import_form.html", {"form": form})
